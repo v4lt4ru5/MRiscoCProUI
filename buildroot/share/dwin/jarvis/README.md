@@ -57,7 +57,8 @@ All commands run from the repository root.
 - Firmware: a `.venv` in the repository root with `platformio==6.1.19` (the HC32 platform's
   `platform.py:15` imports the legacy `platformio.managers.platform` alias) and
   `PLATFORMIO_CORE_DIR=$PWD/.pio-core`. The HC32 platform and frameworks are pinned to commits in
-  `ini/hc32.ini`. `build.sh` activates the venv and sets `PLATFORMIO_CORE_DIR` itself.
+  `ini/hc32.ini`. `build.sh` activates the venv and sets `PLATFORMIO_CORE_DIR` itself. Create the
+  venv once with `python3 -m venv .venv && .venv/bin/pip install platformio==6.1.19`.
 - Host test: g++ with C++11 (checked with g++ 13.3).
 
 ## Asset pipeline
@@ -151,9 +152,10 @@ Documented in the plan; none has been needed so far.
   display drops only (near-)black pixels, so the dim tail of the glow is drawn as a dark rim. Fix the
   assets only, no firmware change: cut the glow off sooner so the dim tail becomes pure black and is
   dropped. That means raising the `LUT_CLAMP` level (now channel < 10 -> 0) towards the popup
-  background level (about 24), and lowering the glow (gains 0.55 / 0.9, blur radii 6 / 2 in
-  `Art.render()`) if the cut then shows; if specks remain, use a stricter black tolerance for those
-  icons. Do it at least for the 110x100, 80x100 and 73x66 icons, which popups draw transparent.
+  background level (about 24), and lowering the glow (gains 0.55 / 0.9 in the module-level
+  `LUT_G6` / `LUT_G2`, blur radii 6 / 2 in `Art.render()`) if the cut then shows; if specks remain,
+  use a stricter black tolerance for those icons. Do it at least for the 110x100, 80x100 and 73x66
+  icons, which popups draw transparent.
   Then regenerate and re-validate.
 - `9.ICO` over the cap: move ids >= 100 to a second library `3.ICO` (bank 3) and select its `libID`
   in `DWINUI::ICON_Show` (about 10 B).
