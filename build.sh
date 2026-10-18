@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Build MRiscoC ProUI for the Voxelab Aquila X2 (HC32F460, env HC32F460C_aquila_101).
-# Usage: ./build.sh <cfg> [sufijo]    <cfg> = folder in "configurations/Voxelab Aquila HC32/"
+# Usage: ./build.sh <cfg> [sufijo] [nota]    <cfg> = folder in "configurations/Voxelab Aquila HC32/"; [nota] replaces the bin name in out/SIZES.md
 set -euo pipefail
-CFG=${1:?usage: ./build.sh <cfg> [sufijo]}
+CFG=${1:?usage: ./build.sh <cfg> [sufijo] [nota]}
 SUFIJO=${2:-}
+NOTA=${3:-}
 PIOENV=HC32F460C_aquila_101
 MAX=212992  # 256 KiB flash minus the 48 KiB bootloader (app starts at 0xC000)
 cd "$(dirname "$0")"
@@ -32,4 +33,4 @@ cp "$BIN" "$OUT"
 LIBRES=$((MAX - SIZE))
 echo "$OUT: $SIZE bytes, libres=$LIBRES"
 [ -f out/SIZES.md ] || printf '| fecha | cfg | bytes | libres | nota |\n|---|---|---|---|---|\n' > out/SIZES.md
-echo "| $(date '+%Y-%m-%d %H:%M') | $CFG | $SIZE | $LIBRES | $(basename "$OUT") |" >> out/SIZES.md
+echo "| $(date '+%Y-%m-%d %H:%M') | $CFG | $SIZE | $LIBRES | ${NOTA:-$(basename "$OUT")} |" >> out/SIZES.md
