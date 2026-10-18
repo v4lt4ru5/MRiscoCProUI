@@ -162,10 +162,13 @@ LAYOUT = {
         'button_size': (110, 100),          # selected: icon id + 1 and a double Cursor frame
         'caption_dy': 72,                   # caption 8x16 centered on the button at y + 72
     },
-    'toolbar': {'y': 321, 'h': 28, 'item_y': 326, 'x0': 76, 'dx': 24},  # 5 items 20x20 at x0 + dx * i, no caption shown
+    'toolbar': {'y': 321, 'h': 28, 'item_y': 326, 'x0': 76, 'dx': 24,  # 5 items 20x20 at x0 + dx * i, no caption shown
+                'band_565': 0x0841},        # ToolBarClass::draw() (closed libproui.a) first fills (0, y, 272, h) with
+                                            # this RGB565 word (Color_Bg_Black), not with Background
     'print': {
         'filename_y': 60,                   # 8x16 centered
         'bar': (15, 93), 'bar_icon': 25, 'bar_size': (242, 20),  # Barfill from x 15 + pct * 242 // 100 to 257
+        'barfill_end': (257, 113),          # (x2, y2) of that Barfill box, one past the icon (dwin.cpp:528)
         'percent': (117, 133),              # PercentTxt
         'time_icons': ((15, 171), (150, 171)),  # icons 15 / 16 (24x24): elapsed / remaining
         'time_labels': ((46, 173), (181, 173)),
@@ -196,6 +199,10 @@ LAYOUT = {
         'button_size': (100, 38),           # TitleBg, Text caption; selected: 2 px Cursor frame outside
         'button': (86, 280),                # one button
         'buttons': ((26, 280), (146, 280)), # Confirm / Cancel
+    },
+    'alert': {                              # File menu without media (dwin.cpp:1074-1075)
+        'box': (10, 197, 262, 260),         # AlertBg: (10, MBASE(3) - 10, DWIN_WIDTH - 10, MBASE(4))
+        'text_y': 207,                      # MSG_MEDIA_NOT_INSERTED 12x24 centered, AlertTxt, at MBASE(3)
     },
     'boot': {                               # the display shows 0_start.jpg on its own first
         'name_y': 220,                      # MACHINE_NAME 12x24 centered (HMI_Init)
