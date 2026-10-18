@@ -12,9 +12,9 @@ C11 E6  R25 G59 B31  ;Text
 C11 E7  R0 G20 B10   ;Selected
 C11 E8  R0 G18 B12   ;Split Line
 C11 E9  R0 G44 B22   ;Highlight
-C11 E10 R0 G6 B6     ;Status Background
+C11 E10 R0 G6 B3     ;Status Background
 C11 E11 R15 G58 B31  ;Status Text
-C11 E12 R0 G6 B6     ;Popup Background
+C11 E12 R0 G6 B3     ;Popup Background
 C11 E13 R25 G59 B31  ;Popup Text
 C11 E14 R8 G6 B0     ;Alert Background
 C11 E15 R31 G44 B0   ;Alert Text

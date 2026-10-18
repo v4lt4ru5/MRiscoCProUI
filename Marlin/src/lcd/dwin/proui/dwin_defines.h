@@ -76,9 +76,9 @@
   #define Def_Selected_Color    (RGB( 0, 20, 10))
   #define Def_SplitLine_Color   (RGB( 0, 18, 12))
   #define Def_Highlight_Color   JV_TEAL           // Popup frame
-  #define Def_StatusBg_Color    (RGB( 0,  6,  6))
+  #define Def_StatusBg_Color    (RGB( 0,  6,  3))
   #define Def_StatusTxt_Color   (RGB(15, 58, 31))
-  #define Def_PopupBg_Color     (RGB( 0,  6,  6))
+  #define Def_PopupBg_Color     (RGB( 0,  6,  3))
   #define Def_PopupTxt_Color    JV_ICE
   #define Def_AlertBg_Color     (RGB( 8,  6,  0))
   #define Def_AlertTxt_Color    JV_AMBER
