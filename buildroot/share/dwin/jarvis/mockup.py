@@ -376,8 +376,9 @@ def alert(t):
 
 
 def contact(t):
-    """Every id of ICONS by size, on Background and again on PopupBg; the OPAQUE ids drawn with
-    Draw_IconWB (id in amber), the others with Draw_Icon (id in ice)."""
+    """Every id of ICONS by size, on Background and again on PopupBg. On Background the OPAQUE ids are
+    drawn with Draw_IconWB (id in amber), the others with Draw_Icon (id in ice); on PopupBg every id goes
+    through Draw_Icon, as a popup draws its icon (dwin_popup.h:56): nothing is opaque there."""
     pw, gap, top = 560, 6, 36
     pos, x, y, row = {}, gap, top, 0
     for i in sorted(spec.ICONS, key=lambda i: (-spec.ICONS[i][1], -spec.ICONS[i][0], i)):
@@ -387,14 +388,16 @@ def contact(t):
             x, y, row = gap, y + row + F6[1] + 1 + gap, 0
         pos[i], x, row = (x, y), x + cw + gap, max(row, h)
     sheet = Image.new('RGB', (2 * pw, y + row + F6[1] + 1 + gap))
+    legend = ('id in amber: Draw_IconWB (opaque); in ice: Draw_Icon (all channels <= %d dropped)',
+              'every id with Draw_Icon (all channels <= %d dropped), as popups draw (dwin_popup.h:56)')
     for k, slot in enumerate(('Background', 'PopupBg')):
         s = Screen(t, (pw, sheet.height), t.c[slot])
         s.text(F8, gen.ICE, gap, 4, 'on %s %s' % (slot, t.c[slot]))
-        s.text(F6, gen.ICE, gap, 22, 'id in amber: Draw_IconWB (opaque); in ice: Draw_Icon (all channels '
-                                     '<= %d dropped)' % chk.BLACK)
+        s.text(F6, gen.ICE, gap, 22, legend[k] % chk.BLACK)
         for i, (x, y) in pos.items():
-            s.icon(i, x, y, wb=i in OPAQUE)
-            s.text(F6, gen.AMBER if i in OPAQUE else gen.ICE, x, y + spec.ICONS[i][1] + 1, str(i))
+            wb = k == 0 and i in OPAQUE
+            s.icon(i, x, y, wb=wb)
+            s.text(F6, gen.AMBER if wb else gen.ICE, x, y + spec.ICONS[i][1] + 1, str(i))
         sheet.paste(s.im, (k * pw, 0))
     return sheet
 
@@ -407,21 +410,22 @@ def save(name, im, written):
 
 def main():
     assert OPAQUE <= set(spec.ICONS), sorted(OPAQUE - set(spec.ICONS))
-    os.makedirs(OUT, exist_ok=True)
-    for name in os.listdir(OUT):                    # drop the previous run's pictures
-        if name.endswith('.png'):
-            os.remove(os.path.join(OUT, name))
     jarvis = Theme(gen.PACK, spec.PALETTE, True)
     stock = Theme(ORIGINAL, {slot: split565(v) for slot, v in STOCK_565.items()}, False)
     screens = (('boot', boot(jarvis)), ('boot_black', boot(jarvis, jpg=False)), ('main', main_menu(jarvis)),
                ('print', printing(jarvis)), ('menu', prepare(jarvis)), ('popup', popup(jarvis)),
                ('alert', alert(jarvis)), ('main_stock', main_menu(stock)))
-    written = []
     for name, s in screens:
         assert s.im.size == (W, H), '%s is %dx%d' % ((name,) + s.im.size)
+    sheet = contact(jarvis)
+    os.makedirs(OUT, exist_ok=True)                 # all drawn and checked: only now drop the old pictures
+    for name in os.listdir(OUT):
+        if name.endswith('.png'):
+            os.remove(os.path.join(OUT, name))
+    written = []
+    for name, s in screens:
         save(name, s.im, written)
         print('%-10s %dx%d  icons %s' % (name, W, H, ' '.join(map(str, sorted(s.icons)))))
-    sheet = contact(jarvis)
     save('contact', sheet, written)
     print('%-10s %dx%d  icons: all %d ids of jarvis_spec.ICONS, twice' % ('contact', sheet.width, sheet.height,
                                                                          len(spec.ICONS)))
