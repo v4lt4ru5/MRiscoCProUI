@@ -3661,7 +3661,7 @@
   #define JARVIS_GAUGES         // HUD hotend/bed temperature gauges (-52 bytes of flash)
   #define JARVIS_BOOT           // HUD boot screen and spinner (136 bytes of flash)
   //#define JARVIS_BOOT_JPG     // Boot screen over 0_start.jpg, only if M997 showed it upright (0 bytes of flash over JARVIS_BOOT)
-  //#define JARVIS_FANBAR       // Fan speed bar on the dashboard (? bytes of flash)
+  //#define JARVIS_FANBAR       // Fan speed bar on the dashboard (96 bytes of flash)
   //#define JARVIS_HOT_TEMP 45  // (degC) Gauges show HOT above this with the heater off
 
 #endif

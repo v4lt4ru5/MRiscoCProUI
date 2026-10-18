@@ -820,6 +820,15 @@ void _draw_xyz_position(const bool force) {
   }
 #endif
 
+#if ALL(JARVIS_FANBAR, HAS_FAN)
+  // Fan speed bar under the fan value: x 187 to 187 + fan / 4 in Indicator color, the rest of the track to 250 in Barfill
+  static void _draw_jv_fanbar(const uint8_t fan) {
+    const uint8_t w = fan >> 2;
+    DWIN_Draw_Rectangle(1, HMI_data.Indicator_Color, 187, 405, 187 + w, 406);
+    if (w < 63) DWIN_Draw_Rectangle(1, HMI_data.Barfill_Color, 188 + w, 405, 250, 406); // Full bar: no empty part
+  }
+#endif
+
 void update_variable() {
   #if DEBUG_OUT
     DWINUI::Draw_Int(Color_Light_Red, Color_Bg_Black, 2, DWIN_WIDTH - 6 * DWINUI::fontWidth(), 6, checkkey);
@@ -921,6 +930,7 @@ void update_variable() {
   #if HAS_FAN
     if (_new_fanspeed)
       { DWINUI::Draw_Int(DWIN_FONT_STAT, HMI_data.Indicator_Color, HMI_data.Background_Color, 3, 195 + 2 * STAT_CHR_W, 384, _fanspeed); }
+    TERN_(JARVIS_FANBAR, if (_new_fanspeed) _draw_jv_fanbar(_fanspeed));
   #endif
 
   static float _offset = 0;
@@ -1172,6 +1182,7 @@ void DWIN_Draw_Dashboard() {
   #if HAS_FAN
     DWINUI::Draw_Icon(ICON_FanSpeed, 187, 383);
     DWINUI::Draw_Int(DWIN_FONT_STAT, HMI_data.Indicator_Color, HMI_data.Background_Color, 3, 195 + 2 * STAT_CHR_W, 384, thermalManager.fan_speed[EXT]);
+    TERN_(JARVIS_FANBAR, _draw_jv_fanbar(thermalManager.fan_speed[EXT]));
   #endif
 
   #if HAS_ZOFFSET_ITEM
