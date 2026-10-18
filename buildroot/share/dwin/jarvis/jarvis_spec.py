@@ -6,7 +6,8 @@ Data shared by the skin tools in this folder:
            values as the JARVIS_PALETTE defaults in Marlin/src/lcd/dwin/proui/dwin_defines.h
   SLOTS    C11 slot -> (Def_<name>_Color name, label of the slot in the Select Colors menu)
   JV       named accents, the same values as the JV_* macros in dwin_defines.h
-  ICONS    icon id -> (W, H, class)
+  ICONS    icon id -> (W, H, class) of the DWIN_SET (JARVIS) icon pack (gen_icons.py, check_dwin_set.py)
+  CAPTION_ROWS, DASH_KEEPOUT, SPLASH_KEEPOUT  areas of the art that must stay black; SPLASH_SPINNER
   LAYOUT   firmware screen coordinates in pixels
   write_theme(path) writes the C11 theme G-code
 
@@ -77,7 +78,55 @@ PALETTE = {
     20: (0, 30, 18),
 }
 
-ICONS = {}  # filled by Task 5
+# Icon id -> (W, H, class) of DWIN_SET (JARVIS)/9.ICO, made by gen_icons.py. Classes: N new art for a
+# stock id, S its selected variant (id + 1: brighter core, filled corner brackets), G gauge, K spinner
+# frame, J static JARVIS art. Stock ids keep the sizes of DWIN_SET (Original)/9.ICO, whose 100x38
+# buttons 85, 87 and 89 are left out (ProUI draws text buttons); 27 (ICON_Axis) is drawn but unused.
+ICONS = {
+    0: (130, 26, 'N'),                                          # ICON_LOGO: "AQUILA X2"
+    **{i: (110, 100, 'N') for i in (1, 3, 5, 7, 90, 93)},       # main menu buttons, popups
+    **{i: (110, 100, 'S') for i in (2, 4, 6, 8, 91)},
+    **{i: (80, 100, 'N') for i in (17, 19, 21, 23)},            # print screen buttons, popups
+    **{i: (80, 100, 'S') for i in (18, 20, 22, 24)},
+    **{i: (24, 24, 'N') for i in (15, 16)},                     # elapsed / remaining time
+    25: (242, 20, 'N'),                                         # ICON_Bar: progress bar
+    **{i: (20, 20, 'N') for i in (tuple(range(9, 15)) + tuple(range(26, 39)) + tuple(range(40, 77))
+                                  + tuple(range(200, 207)) + tuple(range(249, 255)))},  # menu glyphs
+    77: (14, 52, 'J'),                                          # ICON_Rectangle: menu cursor (JARVIS_CURSOR)
+    **{i: (73, 66, 'N') for i in (78, 79, 80, 81)},             # popups: BLTouch, too low, leveling, error
+    **{i: (80, 80, 'K') for i in range(100, 108)},              # ICON_JV_Spin0 + frame 0..7
+    **{i: (24, 24, 'G') for i in range(110, 130)},              # ICON_JV_HotG0 / BedG0 + level 0..8, + 9 = HOT
+    130: (272, 30, 'J'),                                        # ICON_JV_Title
+    131: (272, 105, 'J'),                                       # ICON_JV_Dash, drawn at (0, 375)
+}
+
+# Rows y1..y2 (inclusive) of the 110x100 and 80x100 buttons kept black: ICON_Button() writes the
+# caption 8x16 at y + 72 on top of the icon (and the selected frame takes the outer 2 px)
+CAPTION_ROWS = (68, 92)
+
+# Boxes (x1, y1, x2, y2), inclusive, kept black in icon 131 because the firmware draws there on top
+# of it; icon coordinates = screen coordinates - (0, 375)
+DASH_KEEPOUT = (
+    (4, 6, 27, 29), (4, 39, 27, 62),                            # hotend / bed gauges (24x24)
+    (28, 9, 57, 28), (60, 9, 69, 28), (71, 9, 100, 28), (104, 9, 111, 28),   # hotend: cur / tgt deg
+    (28, 42, 57, 61), (60, 42, 69, 61), (71, 42, 100, 61), (104, 42, 111, 61),  # bed: cur / tgt deg
+    (136, 9, 187, 28),                                          # speed value and %
+    (215, 9, 244, 28),                                          # fan value
+    (187, 30, 250, 31),                                         # optional fan bar (JARVIS_FANBAR)
+    (113, 41, 132, 60), (136, 42, 177, 61),                     # flow / runout icon, flow value and %
+    (187, 41, 206, 60), (204, 42, 263, 61),                     # Z-offset icon and value
+    (27, 82, 82, 97), (112, 82, 167, 97), (197, 82, 252, 97),   # X / Y / Z values (8x16)
+)
+
+# 0_start.jpg is drawn as a 272x480 portrait design and saved turned with transpose(ROTATE_90)
+# (480x272). The spinner box holds frame 0 of icons 100-107 (drawn there at boot by JARVIS_BOOT);
+# the other boxes stay black for the machine name, the boot bar (icon 25) and the boot texts.
+SPLASH_SPINNER = (96, 90, 175, 169)
+SPLASH_KEEPOUT = (
+    (5, 218, 271, 245),                                         # MACHINE_NAME 12x24 at y 220
+    (15, 258, 257, 281),                                        # ICON_Bar at (15, 260)
+    (0, 290, 271, 340),                                         # ProUI-EX / version texts
+)
 
 # Screen coordinates of the ProUI firmware (tag 2.1.3h-7-HC32, PROUI_EX with the toolbar), in pixels
 # from the top left corner: positions (x, y) are top-left corners, boxes (x1, y1, x2, y2) are

@@ -139,3 +139,10 @@
 #define ICON_AxisBL            252
 #define ICON_AxisTL            253
 #define ICON_AxisC             254
+
+// JARVIS skin: ids that only exist in DWIN_SET (JARVIS)/9.ICO (ICON_Rectangle 77 is redrawn there as the menu cursor)
+#define ICON_JV_Spin0          100  // 100..107: boot spinner frames, 80x80
+#define ICON_JV_HotG0          110  // 110 + level 0..8, 119 = HOT: hotend gauge, 24x24
+#define ICON_JV_BedG0          120  // 120 + level 0..8, 129 = HOT: bed gauge (= ICON_JV_HotG0 + 10)
+#define ICON_JV_Title          130  // title bar, 272x30
+#define ICON_JV_Dash           131  // dashboard frame, 272x105
