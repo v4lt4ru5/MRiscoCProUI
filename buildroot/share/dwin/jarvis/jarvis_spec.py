@@ -116,6 +116,9 @@ DASH_KEEPOUT = (
     (113, 41, 132, 60), (136, 42, 177, 61),                     # flow / runout icon, flow value and %
     (187, 41, 206, 60), (204, 42, 263, 61),                     # Z-offset icon and value
     (27, 82, 82, 97), (112, 82, 167, 97), (197, 82, 252, 97),   # X / Y / Z values (8x16)
+    # ruling R13: static icons the firmware keeps drawing with Draw_Icon (transparent: nothing may show)
+    (113, 8, 132, 27), (187, 8, 206, 27),                       # speed (11) and fan (48)
+    (10, 79, 29, 98), (95, 79, 114, 98), (180, 79, 199, 98),    # X / Y / Z (59 / 60 / 61)
 )
 
 # 0_start.jpg is drawn as a 272x480 portrait design and saved turned with transpose(ROTATE_90)

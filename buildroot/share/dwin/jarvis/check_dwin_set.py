@@ -13,15 +13,19 @@ Profile stock, what any set needs:
   - the ids of DWIN_SET (Original) but 27, 85, 87 and 89 are present, with the sizes of
     jarvis_spec.ICONS
   - 0_start.jpg, when present: a non-progressive JPEG, 480x272, <= 32768 B (one bank)
-  - the 1-px border of every icon is black (max channel <= 6; both profiles skip the bottom row of
-    130 and 131, see below); only a warning here, because the Original art sits on grey
+  - the 1-px border of every icon is black (max channel <= BLACK = 12; both profiles skip the bottom
+    row of 130 and 131, see below); only a WARNING in this profile (ruling R12), because the Original
+    art sits on a slate background (the 1-px border of 99 of its 100 icons is above 6)
+  - other files in the folder (1_English.jpg, *.CFG, *.BIN, ...) are only listed (ruling R12)
 Profile jarvis, DWIN_SET (JARVIS) as gen_icons.py makes it, adds:
-  - the folder holds exactly 9.ICO and 0_start.jpg (no .BIN/.CFG/.HZK: those stay from the user's set)
+  - the folder holds exactly 9.ICO and 0_start.jpg (no .BIN/.CFG/.HZK: those stay from the user's
+    set); this folder rule is jarvis-only (ruling R12)
   - ids 77, 100-107 and 110-131 too; every id is in jarvis_spec.ICONS with its size
   - every JPEG is baseline (SOF0), 3 components 4:4:4, without APP1 (EXIF)
-  - black (max channel <= 6): the 1-px border of every icon (but the bottom row of 130 and 131,
-    where the title rule and the dashboard's bottom rule go), rows CAPTION_ROWS of the 110x100 and
-    80x100 buttons, DASH_KEEPOUT in icon 131 and SPLASH_KEEPOUT in 0_start.jpg
+  - black (max channel <= BLACK = 12, ruling R11): the 1-px border of every icon, rows CAPTION_ROWS
+    of the 110x100 and 80x100 buttons, DASH_KEEPOUT in icon 131 and SPLASH_KEEPOUT in 0_start.jpg.
+    The bottom row of 130 and 131 is skipped in both profiles (ruling R12): it carries the title
+    rule (rows 27-29) and the dashboard's bottom rule (rows 103-104 = screen 478-479)
 
 --selftest runs the stock profile on DWIN_SET (Original), which must pass, and on two broken copies
 (9.ICO truncated; a 33 KiB 0_start.jpg), which must fail; the jarvis profile must reject the Original.
@@ -49,7 +53,11 @@ ICO_NAME, START_NAME = '9.ICO', '0_start.jpg'
 ICO_MAX, ICO_TARGET = 229376, 215000
 START_MAX, START_SIZE = 32768, (480, 272)
 HEADER, ENTRY = 4096, 16
-BLACK = 6                   # "black": every channel <= 6 once decoded (RGB565: R 0, G <= 1, B 0)
+# "Black": every channel <= 12 once decoded (RGB565: R <= 1, G <= 3, B <= 1), ruling R11. JPEG rings
+# an 8x8 block that holds a bright stroke by 6-30, so <= 6 would need q95-98 on icons of 24 px or less;
+# the display's near-black filtering (BFI=1) already accepts the Original's ~8/255 slate, and <= 12 on
+# a 0x0000 background is invisible.
+BLACK = 12
 
 # Ids of DWIN_SET (Original)/9.ICO; ProUI does not use 27, 85, 87 and 89
 ORIGINAL_IDS = (tuple(range(0, 39)) + tuple(range(40, 82)) + (85, 87, 89, 90, 91, 93)

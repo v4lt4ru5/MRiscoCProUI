@@ -20,8 +20,8 @@ the art uses the stroke font FONT (polylines on a 4 x 6 grid).
 JPEG: RGB, baseline, 4:4:4, optimize=True, no EXIF. Every budget class starts at quality 90; while
 9.ICO would be over 215000 B the class with most bytes drops 2 points (not below 75). An icon is
 raised above its class quality, 1 point at a time, while the JPEG noise lifts one of the areas that
-must stay black above check_dwin_set.BLACK (6), measured with the validator's own code: in 20x20,
-24x24 and 14x52 icons every 8x8 block holds border pixels, so they end up at q95-98. 0_start.jpg is
+must stay black above check_dwin_set.BLACK (12), measured with the validator's own code: in 20x20,
+24x24 and 14x52 icons every 8x8 block holds border pixels, so most end up at q89-96. 0_start.jpg is
 the 272x480 portrait design turned with transpose(ROTATE_90), from q90 down by 2 until <= 31744 B.
 No clock and no randomness: two runs write the same bytes.
 Check the result with check_dwin_set.py "<DWIN_SET (JARVIS)>" --profile jarvis.
@@ -688,12 +688,11 @@ def corner_brackets(a, x0, y0, x1, y1, hi, c, size=7):
 
 
 # JPEG codes 8x8 blocks: a bright stroke in a block that also holds pixels of the 1-px border (or of
-# CAPTION_ROWS / DASH_KEEPOUT / SPLASH_KEEPOUT) rings them well above 6, even at q95. The bigger icons
+# CAPTION_ROWS / DASH_KEEPOUT / SPLASH_KEEPOUT) rings them by 6-30 at q85-95. The bigger icons
 # therefore keep their strokes in the blocks that hold none of those pixels, about 4 px in from the
 # outer blocks (brackets at 13), so that the glow reaching the outer blocks is under 10 and clamped to 0.
 # Icons too small for that (20x20, 24x24, 14x52, the bar) are raised to the JPEG quality that keeps
-# their border black instead (encode()), and the dashboard, whose static icons share blocks with
-# keep-outs, too.
+# their border black instead, when needed (encode()).
 
 
 def button(w, draw_glyph, hi, accent=CYAN):
@@ -864,25 +863,21 @@ def title():
     return a.render(margin=(2, 2, 2, 0))
 
 
-DASH_ICONS = ((11, 113, 8), (48, 187, 8), (59, 10, 79), (60, 95, 79), (61, 180, 79))
-
-
 def dash():
-    """272x105 dashboard frame at screen y 375: right rail and bracket, separators, the static icons
-    (speed, fan, X/Y/Z), rules on rows 74-75 and 103-104 (screen 449-450 and 478-479); DASH_KEEPOUT
-    stays black for the values, gauges and icons the firmware draws."""
+    """272x105 dashboard frame at screen y 375: rails, corner brackets and the rules on rows 74-75 and
+    103-104 (screen 449-450 and 478-479), nothing else (ruling R13: no baked icons); DASH_KEEPOUT
+    (values, gauges and the icons the firmware still draws) stays black."""
     a = Art(272, 105)
-    a.line([(30, 34.5), (263, 34.5)], 1.0, DIM, lit=False)              # between the two value rows
+    a.line([(30, 34.5), (263, 34.5)], 1.0, DIM, lit=False)              # rail between the value rows
     for x in range(48, 241, 48):
         a.line([(x, 33.4), (x, 35.6)], 1.0, TEAL)
-    a.line([(255.5, 9), (262.5, 9), (262.5, 28)], 1.2, CYAN)            # right bracket and rail
-    for x in (89.5, 174.5):                                               # between X, Y and Z
+    a.line([(255.5, 9), (262.5, 9), (262.5, 28)], 1.2, CYAN)            # top-right bracket and rail
+    for x in (89.5, 174.5):                                               # rails between X, Y and Z
         a.line([(x, 82), (x, 97)], 1.0, DIM, lit=False)
     a.line([(9, 75), (263, 75)], 2.0, TEAL)
-    a.line([(9, 104), (263, 104)], 2.0, TEAL)
-    for i, x, y in DASH_ICONS:
-        GLYPHS[i](a.at(x, y), i)
-    a.at(0, 0)
+    a.line([(9, 104), (263, 104), (263, 99.5)], 2.0, TEAL)              # bottom rule, bottom-right corner
+    # Nothing at x < 8: those 8x8 JPEG blocks also hold the border and the gauge keep-outs (x 4-27), and
+    # the X icon (x 10-29, rows 79-98) is too close to the bottom rule's left end for a corner there.
     return a.render(margin=(2, 2, 2, 0), black=spec.DASH_KEEPOUT)
 
 
