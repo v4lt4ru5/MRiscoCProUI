@@ -3654,7 +3654,7 @@
   //#define NO_BLINK_IND        // Disables dashboard icon blink indicator highlighted background
 
   // JARVIS HUD skin, uses the DWIN_SET (JARVIS) icons. The flash cost of each switch is filled in when measured (out/SIZES.md)
-  #define JARVIS_PALETTE        // HUD color palette defaults, needs ALT_COLOR_MENU 1 (? bytes of flash)
+  #define JARVIS_PALETTE        // HUD color palette defaults, needs ALT_COLOR_MENU 1 (4 bytes of flash)
   #define JARVIS_TITLE          // HUD title bar image (? bytes of flash)
   #define JARVIS_CURSOR         // HUD menu cursor image (? bytes of flash)
   #define JARVIS_DASH_FRAME     // HUD dashboard frame image (? bytes of flash)

@@ -53,6 +53,41 @@
   #define JUST_BABYSTEP 1
 #endif
 
+// JARVIS HUD skin: JARVIS_* switches in Configuration.h, tools in buildroot/share/dwin/jarvis
+#if ANY(TJC_DISPLAY, DACAI_DISPLAY) && ANY(JARVIS_PALETTE, JARVIS_TITLE, JARVIS_CURSOR, JARVIS_DASH_FRAME, JARVIS_GAUGES, JARVIS_BOOT, JARVIS_BOOT_JPG, JARVIS_FANBAR)
+  #error "JARVIS_* options need the DWIN T5UIC1 display with DWIN_SET (JARVIS). Disable them for TJC_DISPLAY or DACAI_DISPLAY."
+#endif
+#if ENABLED(JARVIS_PALETTE) && ALT_COLOR_MENU != 1
+  #error "JARVIS_PALETTE requires ALT_COLOR_MENU 1 (the only DWIN_SetColorDefaults() that applies every Def_*_Color)."
+#endif
+
+// JARVIS accents (R 0-31, G 0-63, B 0-31) for any JARVIS_* switch. RGB() has no outer parentheses, so each use is wrapped.
+#define JV_CYAN   (RGB( 0, 57, 31))
+#define JV_TEAL   (RGB( 0, 44, 22))
+#define JV_ICE    (RGB(25, 59, 31))
+#define JV_AMBER  (RGB(31, 44,  0))
+
+#if ENABLED(JARVIS_PALETTE) // Same values as PALETTE in buildroot/share/dwin/jarvis/jarvis_spec.py and themes/jarvis_theme.gcode
+  #define Def_Background_Color  (RGB( 0,  0,  0)) // Pure black, needed by Draw_IconWB
+  #define Def_Cursor_Color      JV_CYAN           // Selection frames
+  #define Def_TitleBg_Color     (RGB( 0, 14, 11)) // Popup buttons (the title bar is an icon)
+  #define Def_TitleTxt_Color    (RGB(20, 63, 31))
+  #define Def_Text_Color        JV_ICE
+  #define Def_Selected_Color    (RGB( 0, 20, 10))
+  #define Def_SplitLine_Color   (RGB( 0, 18, 12))
+  #define Def_Highlight_Color   JV_TEAL           // Popup frame
+  #define Def_StatusBg_Color    (RGB( 0,  6,  6))
+  #define Def_StatusTxt_Color   (RGB(15, 58, 31))
+  #define Def_PopupBg_Color     (RGB( 0,  6,  6))
+  #define Def_PopupTxt_Color    JV_ICE
+  #define Def_AlertBg_Color     (RGB( 8,  6,  0))
+  #define Def_AlertTxt_Color    JV_AMBER
+  #define Def_PercentTxt_Color  JV_CYAN
+  #define Def_Barfill_Color     (RGB( 0,  8,  6)) // Unlit part of the progress bar
+  #define Def_Indicator_Color   JV_CYAN
+  #define Def_Coordinate_Color  JV_ICE
+  #define Def_Bottom_Color      (RGB( 0, 30, 18))
+#else // Stock ProUI defaults
 #if (ALT_COLOR_MENU == 2)
   #define Def_Background_Color  RGB( 0, 8, 6) // Dark Green/Blue
   #define Def_TitleBg_Color     RGB( 0, 23, 16) // Orient Blue
@@ -77,6 +112,7 @@
 #define Def_Indicator_Color   Color_Cyan //
 #define Def_Coordinate_Color  Color_Brown //
 #define Def_Bottom_Color      Color_Silver //
+#endif // JARVIS_PALETTE
 
 #if ALL(LED_CONTROL_MENU, HAS_COLOR_LEDS)
   #define Def_Leds_Color      LEDColorWhite()
