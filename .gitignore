@@ -182,3 +182,9 @@ tags
 desktop.ini
 !MarlinSimulator.exe
 schema.json
+
+# Aquila X2 build.sh: local venv, PlatformIO core, build outputs (out/SIZES.md stays tracked)
+.venv/
+.pio-core/
+out/*.bin
+out/*.log
