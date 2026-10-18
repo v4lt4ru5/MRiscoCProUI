@@ -6,7 +6,7 @@ python3 -I buildroot/share/dwin/jarvis/mockup.py
 Writes mockups/<name>.png and mockups/<name>@2x.png (nearest neighbour); every screen is 272x480:
   boot        0_start.jpg as the display shows it at power-on, HMI_Init's machine name and full boot
               bar, and the JARVIS_BOOT texts and spinner frame 0: both boot phases in one picture (with
-              JARVIS_BOOT_JPG, Init() shows the splash again, which wipes the bar)
+              JARVIS_BOOT_JPG, DWIN_InitScreen() shows the splash again, which wipes the bar)
   boot_black  the JARVIS_BOOT phase with JARVIS_BOOT_JPG off, the X2-JARVIS default (black screen)
   main        main menu with Print selected, toolbar, status line and dashboard
   print       printing at 63 % with Pause selected
@@ -280,7 +280,7 @@ def select_highlight(s, sel):                       # Draw_Select_Highlight (dwi
 
 def boot(t, jpg=True):
     """JARVIS_BOOT (Task 7). jpg: over the splash, with HMI_Init's name and full bar (dwin.cpp:1345-1352,
-    name in JV_CYAN); else Init() starts with DWIN_Frame_Clear(Color_Black). Then the name 12x24 cyan,
+    name in JV_CYAN); else DWIN_InitScreen() starts with DWIN_Frame_Clear(Color_Black). Then the name 12x24 cyan,
     "MRiscoC ProUI-EX" 8x16 ice, the version line 6x12 teal and spinner frame 0 (Draw_IconWB)."""
     s, B = Screen(t), L['boot']
     if jpg:
@@ -289,7 +289,7 @@ def boot(t, jpg=True):
         assert splash.size == (W, H), 'splash is %dx%d' % splash.size
         s.im.paste(splash)
         s.icon(25, *B['bar'])                       # ICON_Bar after its 23 steps, Draw_Icon
-    assert B['name_y'] == B['jv_text_y'][0]         # HMI_Init and Init() put the name at the same place
+    assert B['name_y'] == B['jv_text_y'][0]         # HMI_Init and DWIN_InitScreen() put the name at the same place
     for font, color, y, text in zip((F12, F8, F6), (gen.CYAN, gen.ICE, gen.TEAL), B['jv_text_y'],
                                     (MACHINE, 'MRiscoC ProUI-EX', BOOT_LINE)):
         s.centered(font, color, y, text)

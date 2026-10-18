@@ -1343,7 +1343,7 @@ void HMI_Init() {
       #define BOOTSCREEN_TIMEOUT 1100
     #endif
     DWINUI::Draw_Box(1, Color_Black, { 5, 220, DWIN_WIDTH - 5, DWINUI::fontHeight() });
-    DWINUI::Draw_CenteredString(3, Color_White, 220, F(MACHINE_NAME));
+    DWINUI::Draw_CenteredString(3, TERN(JARVIS_BOOT, JV_CYAN, Color_White), 220, F(MACHINE_NAME));
     for (uint16_t t = 15; t <= 257; t += 11) {
       DWINUI::Draw_Icon(ICON_Bar, 15, 260);
       DWIN_Draw_Rectangle(1, HMI_data.Background_Color, t, 260, 257, 280);
@@ -2284,8 +2284,23 @@ void DWIN_InitScreen() {
   #if PROUI_EX
     ProEx.Init();
   #endif
-  Init();
-  safe_delay(2000);
+  #if ENABLED(JARVIS_BOOT) // HUD boot screen; Init() stays as is, Draw_Info_Menu() also draws it
+    TERN(JARVIS_BOOT_JPG, DWIN_JPG_ShowAndCache(0), DWIN_Frame_Clear(Color_Black)); // Covers ProEx.Init()
+    DWINUI::Draw_CenteredString(font12x24, JV_CYAN, 220, F(MACHINE_NAME));
+    DWINUI::Draw_CenteredString(font8x16, JV_ICE, 296, F("MRiscoC ProUI-EX"));
+    char buf[48];
+    sprintf_P(buf, PSTR("v%s  %s  ClassicRocker883"), SHORT_BUILD_VERSION, STRING_DISTRIBUTION_DATE);
+    DWINUI::Draw_CenteredString(font6x12, JV_TEAL, 318, buf);
+    DWIN_UpdateLCD();
+    for (uint8_t i = 0; i < 24; ++i) { // Spinner: 3 turns of 8 frames, about 2 s
+      DWINUI::Draw_IconWB(ICON_JV_Spin0 + (i & 7), 96, 90);
+      DWIN_UpdateLCD();
+      safe_delay(83);
+    }
+  #else
+    Init();
+    safe_delay(2000);
+  #endif
   DWINUI::init();
   DWINUI::onTitleDraw = Draw_Title;
   InitMenu();
