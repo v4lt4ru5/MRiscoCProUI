@@ -384,11 +384,19 @@ def g_target(a, i):
 
 @glyph(31, 32, 49, 50)
 def g_preheat(a, i):
-    a.text('PLA' if i in (31, 49) else 'ABS', 10, 4, 6, 1.2, CYAN, align='center', track=1)
+    """Preheat preset 1 / 2 (31 / 32) and its settings (49 / 50, with a tick): flame and the preset
+    number, no material name (the presets are user-editable and ProUI reuses 32 for preset 2)."""
+    flame = [(7.3, 16.9), (5.0, 16.1), (3.7, 14.2), (3.6, 11.6), (4.0, 8.4), (4.4, 5.0), (6.4, 9.2), (7.0, 6.0),
+             (8.4, 2.4), (9.1, 5.0), (10.5, 7.8), (11.2, 10.9), (10.9, 14.0), (9.5, 16.1)]   # two tongues
+    a.line(flame, 1.3, CYAN, closed=True)
+    a.line([(7.4, 15.4), (6.0, 14.4), (5.8, 12.5), (6.6, 10.6), (7.3, 8.6), (8.1, 10.2), (9.1, 12.0), (9.0, 14.0),
+            (8.4, 15.0)], 1.0, TEAL, closed=True)
+    digit = '1' if i in (31, 49) else '2'
     if i in (31, 32):
-        a.line([(3.5, 14.5), (16.5, 14.5)], 1.1, TEAL)
+        a.text(digit, 12.4, 6.2, 7.4, 1.4, ICE)
     else:
-        wave(a, (3.5, 14.5), (16.5, 14.5), 1.0, 2, 1.1, TEAL)
+        a.text(digit, 12.6, 3.6, 6.4, 1.3, ICE)
+        a.line([(12.6, 14.0), (14.0, 15.6), (16.6, 12.4)], 1.3, CYAN)   # tick: the preset's settings
 
 
 @glyph(33)
