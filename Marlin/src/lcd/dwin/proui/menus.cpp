@@ -37,7 +37,7 @@ MenuData_t MenuData;
 // Menuitem Drawing functions =================================================
 
 void Draw_Title(TitleClass* title) {
-  DWIN_Draw_Rectangle(1, HMI_data.TitleBg_Color, 0, 0, DWIN_WIDTH - 1, TITLE_HEIGHT - 1);
+  TERN(JARVIS_TITLE, DWINUI::Draw_IconWB(ICON_JV_Title, 0, 0), DWIN_Draw_Rectangle(1, HMI_data.TitleBg_Color, 0, 0, DWIN_WIDTH - 1, TITLE_HEIGHT - 1));
   #if ENABLED(TITLE_CENTERED)
     DWINUI::Draw_CenteredString(false, DWIN_FONT_HEAD, HMI_data.TitleTxt_Color, HMI_data.TitleBg_Color, (TITLE_HEIGHT - DWINUI::fontHeight(DWIN_FONT_HEAD)) / 2 - 1, title->caption);
   #else
@@ -47,7 +47,7 @@ void Draw_Title(TitleClass* title) {
 
 void Draw_Menu_Cursor(const int8_t line) {
   const uint16_t ypos = MYPOS(line);
-  DWINUI::Draw_Box(1, HMI_data.Cursor_Color, {0, ypos, 15, MLINE - 1});
+  TERN(JARVIS_CURSOR, DWINUI::Draw_IconWB(ICON_Rectangle, 0, ypos), DWINUI::Draw_Box(1, HMI_data.Cursor_Color, {0, ypos, 15, MLINE - 1}));
 }
 
 void Erase_Menu_Cursor(const int8_t line) {

@@ -806,6 +806,20 @@ void _draw_xyz_position(const bool force) {
   _update_axis_value(Z_AXIS, 197, 457, force);
 }
 
+#if ENABLED(JARVIS_GAUGES)
+  #include "jarvis.h"
+  static_assert(ICON_JV_BedG0 == ICON_JV_HotG0 + 10, "ICON_JV_BedG0 must be ICON_JV_HotG0 + 10");
+
+  // Hotend (g 0) and bed (g 1) gauges; the last level drawn is kept so a gauge is only redrawn when it changes
+  static uint8_t jv_lvl[2] = { 0xFF, 0xFF };
+  static void _draw_jv_gauge(const uint8_t g, const celsius_t cur, const celsius_t tgt, const bool force) {
+    const uint8_t lvl = jv_gauge_level(cur, tgt);
+    if (!force && lvl == jv_lvl[g]) return;
+    jv_lvl[g] = lvl;
+    DWINUI::Draw_IconWB(ICON_JV_HotG0 + g * 10 + lvl, 4, 381 + g * 33);
+  }
+#endif
+
 void update_variable() {
   #if DEBUG_OUT
     DWINUI::Draw_Int(Color_Light_Red, Color_Bg_Black, 2, DWIN_WIDTH - 6 * DWINUI::fontWidth(), 6, checkkey);
@@ -824,15 +838,19 @@ void update_variable() {
     if (_new_hotend_temp) { _hotendtemp = hc; }
     if (_new_hotend_target) { _hotendtarget = ht; }
 
-    // if hotend is near target, or heating, ICON indicates hot
-    if (thermalManager.degHotendNear(EXT, ht) || thermalManager.isHeatingHotend(EXT)) {
-      DWIN_Draw_Box(1, HMI_data.Background_Color, 9, 383, 20, 20);
-      DWINUI::Draw_Icon(ICON_SetEndTemp, 9, 383);
-    }
-    else {
-      DWIN_Draw_Box(1, HMI_data.Background_Color, 9, 383, 20, 20);
-      DWINUI::Draw_Icon(ICON_HotendTemp, 9, 383);
-    }
+    #if ENABLED(JARVIS_GAUGES)
+      _draw_jv_gauge(0, hc, ht, false);
+    #else
+      // if hotend is near target, or heating, ICON indicates hot
+      if (thermalManager.degHotendNear(EXT, ht) || thermalManager.isHeatingHotend(EXT)) {
+        DWIN_Draw_Box(1, HMI_data.Background_Color, 9, 383, 20, 20);
+        DWINUI::Draw_Icon(ICON_SetEndTemp, 9, 383);
+      }
+      else {
+        DWIN_Draw_Box(1, HMI_data.Background_Color, 9, 383, 20, 20);
+        DWINUI::Draw_Icon(ICON_HotendTemp, 9, 383);
+      }
+    #endif
   #endif // HAS_HOTEND
 
   #if HAS_HEATED_BED
@@ -844,15 +862,19 @@ void update_variable() {
     if (_new_bed_temp) { _bedtemp = bc; }
     if (_new_bed_target) { _bedtarget = bt; }
 
-    // if bed is near target, heating, or if degrees > 44, ICON indicates hot
-    if (thermalManager.degBedNear(bt) || thermalManager.isHeatingBed() || (bc > 44)) {
-      DWIN_Draw_Box(1, HMI_data.Background_Color, 9, 416, 20, 20);
-      DWINUI::Draw_Icon(ICON_BedTemp, 9, 416);
-    }
-    else {
-      DWIN_Draw_Box(1, HMI_data.Background_Color, 9, 416, 20, 20);
-      DWINUI::Draw_Icon(ICON_SetBedTemp, 9, 416);
-    }
+    #if ENABLED(JARVIS_GAUGES)
+      _draw_jv_gauge(1, bc, bt, false);
+    #else
+      // if bed is near target, heating, or if degrees > 44, ICON indicates hot
+      if (thermalManager.degBedNear(bt) || thermalManager.isHeatingBed() || (bc > 44)) {
+        DWIN_Draw_Box(1, HMI_data.Background_Color, 9, 416, 20, 20);
+        DWINUI::Draw_Icon(ICON_BedTemp, 9, 416);
+      }
+      else {
+        DWIN_Draw_Box(1, HMI_data.Background_Color, 9, 416, 20, 20);
+        DWINUI::Draw_Icon(ICON_SetBedTemp, 9, 416);
+      }
+    #endif
   #endif // HAS_HEATED_BED
 
   #if HAS_FAN
@@ -879,7 +901,11 @@ void update_variable() {
     static int16_t _flow = planner.flow_percentage[EXT];
     if (_flow != planner.flow_percentage[EXT]) {
       _flow = planner.flow_percentage[EXT];
-      DWINUI::Draw_Signed_Int(DWIN_FONT_STAT, HMI_data.Indicator_Color, HMI_data.Background_Color, 3, 116 + 2 * STAT_CHR_W, 417, _flow);
+      #if ENABLED(JARVIS_DASH_FRAME) // 3 digits as in DWIN_Draw_Dashboard: the signed draw is 4 chars wide and covers the "%"
+        DWINUI::Draw_Int(DWIN_FONT_STAT, HMI_data.Indicator_Color, HMI_data.Background_Color, 3, 116 + 2 * STAT_CHR_W, 417, _flow);
+      #else
+        DWINUI::Draw_Signed_Int(DWIN_FONT_STAT, HMI_data.Indicator_Color, HMI_data.Background_Color, 3, 116 + 2 * STAT_CHR_W, 417, _flow);
+      #endif
     }
   #endif
 
@@ -1093,20 +1119,30 @@ void HMI_SDCardUpdate() {
 
 // Dash board and indicators
 void DWIN_Draw_Dashboard() {
-  DWIN_Draw_Rectangle(1, HMI_data.Background_Color, 0, STATUS_Y + 21, DWIN_WIDTH, DWIN_HEIGHT - 1);
-  DWIN_Draw_Rectangle(1, HMI_data.Bottom_Color, 0, 449, DWIN_WIDTH, 450);
+  #if ENABLED(JARVIS_DASH_FRAME) // Opaque, rules included: drawn first, all icons and values go on top
+    DWINUI::Draw_IconWB(ICON_JV_Dash, 0, STATUS_Y + 21);
+  #else
+    DWIN_Draw_Rectangle(1, HMI_data.Background_Color, 0, STATUS_Y + 21, DWIN_WIDTH, DWIN_HEIGHT - 1);
+    DWIN_Draw_Rectangle(1, HMI_data.Bottom_Color, 0, 449, DWIN_WIDTH, 450);
+  #endif
 
   DWINUI::Draw_Icon(ICON_MaxSpeedX,  10, 454);
   DWINUI::Draw_Icon(ICON_MaxSpeedY,  95, 454);
   DWINUI::Draw_Icon(ICON_MaxSpeedZ, 180, 454);
   _draw_xyz_position(true);
 
-  DWIN_Draw_Rectangle(1, HMI_data.Bottom_Color, 0, 478, DWIN_WIDTH, 479);
+  #if DISABLED(JARVIS_DASH_FRAME)
+    DWIN_Draw_Rectangle(1, HMI_data.Bottom_Color, 0, 478, DWIN_WIDTH, 479);
+  #endif
 
   TERN_(CV_LASER_MODULE, if (laser_device.is_laser_device()) return;)
 
   #if HAS_HOTEND
-    DWINUI::Draw_Icon(ICON_HotendTemp, 9, 383);
+    #if ENABLED(JARVIS_GAUGES)
+      _draw_jv_gauge(0, thermalManager.wholeDegHotend(EXT), thermalManager.degTargetHotend(EXT), true);
+    #else
+      DWINUI::Draw_Icon(ICON_HotendTemp, 9, 383);
+    #endif
     DWINUI::Draw_Int(DWIN_FONT_STAT, HMI_data.Indicator_Color, HMI_data.Background_Color, 3, 28, 384, thermalManager.wholeDegHotend(EXT));
     DWINUI::Draw_String(DWIN_FONT_STAT, HMI_data.Indicator_Color, HMI_data.Background_Color, 25 + 3 * STAT_CHR_W + 5, 384, F("/"));
     DWINUI::Draw_Int(DWIN_FONT_STAT, HMI_data.Indicator_Color, HMI_data.Background_Color, 3, 25 + 4 * STAT_CHR_W + 6, 384, thermalManager.degTargetHotend(EXT));
@@ -1118,7 +1154,11 @@ void DWIN_Draw_Dashboard() {
   #endif
 
   #if HAS_HEATED_BED
-    DWINUI::Draw_Icon(ICON_SetBedTemp, 9, 416);
+    #if ENABLED(JARVIS_GAUGES)
+      _draw_jv_gauge(1, thermalManager.wholeDegBed(), thermalManager.degTargetBed(), true);
+    #else
+      DWINUI::Draw_Icon(ICON_SetBedTemp, 9, 416);
+    #endif
     DWINUI::Draw_Int(DWIN_FONT_STAT, HMI_data.Indicator_Color, HMI_data.Background_Color, 3, 28, 417, thermalManager.wholeDegBed());
     DWINUI::Draw_String(DWIN_FONT_STAT, HMI_data.Indicator_Color, HMI_data.Background_Color, 25 + 3 * STAT_CHR_W + 5, 417, F("/"));
     DWINUI::Draw_Int(DWIN_FONT_STAT, HMI_data.Indicator_Color, HMI_data.Background_Color, 3, 25 + 4 * STAT_CHR_W + 6, 417, thermalManager.degTargetBed());

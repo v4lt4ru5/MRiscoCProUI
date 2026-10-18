@@ -8,3 +8,8 @@
 | 2026-10-18 18:12 | X2-JARVIS | 182396 | 30596 | JARVIS_BOOT, +136 B vs R14 (Init() kept for the Info screen) |
 | 2026-10-18 18:14 | X2-JARVIS | 182396 | 30596 | JARVIS_BOOT_JPG trial (not committed), +0 B vs JARVIS_BOOT |
 | 2026-10-18 18:15 | X2-JARVIS | 182260 | 30732 | JARVIS_BOOT off check (trial), same bytes as R14 but the build time |
+| 2026-10-18 18:40 | X2-JARVIS | 182380 | 30612 | JARVIS_TITLE, -16 B vs JARVIS_BOOT |
+| 2026-10-18 18:42 | X2-JARVIS | 182292 | 30700 | JARVIS_CURSOR, -88 B vs JARVIS_TITLE (GCC drops the out-of-line DWINUI::Draw_Box) |
+| 2026-10-18 18:44 | X2-JARVIS | 182240 | 30752 | JARVIS_GAUGES, -52 B vs JARVIS_CURSOR |
+| 2026-10-18 18:46 | X2-JARVIS | 182176 | 30816 | JARVIS_DASH_FRAME incl. flow % fix, -64 B vs JARVIS_GAUGES |
+| 2026-10-18 18:48 | X2-JARVIS | 182396 | 30596 | TITLE/CURSOR/GAUGES/DASH_FRAME off check (trial), same bytes as JARVIS_BOOT but the build time |
