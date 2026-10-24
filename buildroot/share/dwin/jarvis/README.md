@@ -45,6 +45,12 @@ All commands run from the repository root.
 - `test_gauge.cpp` - host test of `jv_gauge_level()` in `Marlin/src/lcd/dwin/proui/jarvis.h`, all
   `static_assert` (8 plan cases + 5 boundary cases); compiling is the test.
   `g++ -std=c++11 -fsyntax-only -I Marlin/src/lcd/dwin/proui buildroot/share/dwin/jarvis/test_gauge.cpp`
+- `tram_check.py` - host check of Tram from Mesh (`JARVIS_TRAM_FROM_MESH`): the plane fit, corner
+  deviations and knob-turn text of `Marlin/src/lcd/dwin/proui/tram_from_mesh.h` written again in
+  Python, and the `C36` lines. Asserts the advice for synthetic meshes (tilts, flat, twist, no mesh,
+  every 1/8 turn text) and, when `g++` is installed, compiles `tram_from_mesh.h` on the host and
+  checks that it prints the same numbers and texts. Ends with `tram_check: OK`.
+  `python3 -I buildroot/share/dwin/jarvis/tram_check.py`
 
 ## Prerequisites
 
@@ -59,7 +65,8 @@ All commands run from the repository root.
   `PLATFORMIO_CORE_DIR=$PWD/.pio-core`. The HC32 platform and frameworks are pinned to commits in
   `ini/hc32.ini`. `build.sh` activates the venv and sets `PLATFORMIO_CORE_DIR` itself. Create the
   venv once with `python3 -m venv .venv && .venv/bin/pip install platformio==6.1.19`.
-- Host test: g++ with C++11 (checked with g++ 13.3).
+- Host tests: g++ with C++11 for `test_gauge.cpp`, C++17 for the `tram_check.py` cross-check
+  (checked with g++ 13.3).
 
 ## Asset pipeline
 
@@ -114,12 +121,25 @@ In `configurations/Voxelab Aquila HC32/X2-JARVIS/Configuration.h`. Each delta wa
 | `JARVIS_BOOT_JPG` | off | Boot screen over `0_start.jpg` instead of black; only if `M997` shows the splash upright | +0 B (trial) |
 | `JARVIS_FANBAR` | off | Fan speed bar under the fan value; not in the approved mockups | +96 B (trial) |
 | `JARVIS_HOT_TEMP` | 45 | (degC) a gauge shows HOT when the heater is off and the temperature is above this (`jarvis.h` default) | - |
+| `JARVIS_TRAM_FROM_MESH` | on | *Prepare > Bed Tramming > Tram from Mesh* and `C36`: least-squares plane of the manual mesh at the four bed screws (`BED_SCREW_INSET`), each corner's height against their mean as *Raise/Lower* and *loosen/tighten N/8 turn CW/CCW*; reads the mesh only, moves nothing (`tram_from_mesh.cpp`, math in `tram_from_mesh.h`) | +2,448 B |
+| `JARVIS_TRAM_SCREW_PITCH` | 0.7 | (mm/turn) bed screw thread, M4 | - |
+| `JARVIS_TRAM_LOOSEN_CW` | true | turning a knob clockwise loosens its spring and raises the corner (false swaps the CW/CCW words only) | - |
+| `JARVIS_TRAM_TOLERANCE` | 0.05 | (mm) corners closer than this to the mean are "ok" | - |
 
-- Any `JARVIS_*` switch with `TJC_DISPLAY` or `DACAI_DISPLAY` is an `#error`.
-- Release build: v1.1, 182,064 B, 30,928 B free of the 212,992 B gate (target <= 207,000 B); v1 was
-  182,176 B, and v1.1 replaces four closed-library C-codes with open code (-112 B, see below). The six
-  default switches together save 80 B: 182,256 B (X2-JARVIS config before any skin code) ->
-  182,176 B, per the rows of `out/SIZES.md`.
+- Any skin switch (`JARVIS_PALETTE` ... `JARVIS_FANBAR`) with `TJC_DISPLAY` or `DACAI_DISPLAY` is an
+  `#error`; `JARVIS_TRAM_FROM_MESH` draws no JARVIS icon and needs `MESH_BED_LEVELING` and
+  `BED_SCREW_INSET` instead (`#error` otherwise).
+- X2 defaults that are not switches: `BED_SCREW_INSET 29` (measured on the X2) and the mesh area
+  12..208 mm on both axes (`MESH_MIN_X` ... `MESH_MAX_Y` in the MBL block), 12 mm clear of the glass
+  clips. Fixed numbers on purpose: `MESH_INSET` gives `X_BED_SIZE - inset`, and with ProUI-EX
+  `X_BED_SIZE` is `PRO_data.x_bed_size`, which `mesh_max` reads at boot before the settings load,
+  while it still holds the closed library's own default 230, hence the old `C29 ... R220 B220`.
+- Release build: v1.2, 184,488 B, 28,504 B free of the 212,992 B gate (target <= 207,000 B): v1.1
+  (182,064 B) + `JARVIS_TRAM_FROM_MESH` (+2,448 B) - 24 B (`mesh_max` is now constant data: -40 B of
+  boot code, +8 B of data; the `C851` newline +8 B). v1 was 182,176 B, and v1.1 replaces four
+  closed-library C-codes with open code (-112 B, see below). The six default skin switches together
+  save 80 B: 182,256 B (X2-JARVIS config before any skin code) -> 182,176 B, per the rows of
+  `out/SIZES.md`.
 
 ## Rebuild the firmware
 
@@ -142,7 +162,10 @@ note: it breaks the table). On exit, success or failure, it restores `Marlin/Con
   the library's `C29`/`C412`/`C562`/`C810` handlers or reports are linked, or if
   `serial_echopair_P<short>`, `serial_echolnpair_P<short>`, `FilamentSensorBase::poll_runout_pins()`,
   `SERIAL_ECHO<float>` or `SERIAL_ECHO<char*>` are linked from anywhere but `Marlin/src`
-  (`nm`, `addr2line`).
+  (`nm`, `addr2line`), or if the image holds the Maple-layout address `&MSerialN + 22`. One closed
+  report stays: `ProUIClass::C851_report()` writes its final newline with `MSerial1.write('\n')`,
+  which on HC32 is the display UART (`LCD_SERIAL_PORT 1`), so `custom_gcodes.cpp` adds
+  `SERIAL_EOL()` after it and after `C851` (since v1.2; before, `M503` ended in `C851 Z0.00ok`).
 - To measure a switch, toggle it in the X2-JARVIS `Configuration.h`, build with a note, and put the
   delta in the define's comment and in `out/SIZES.md`.
 - The `.bin` embeds the build date and time (`M115`, and the EEPROM build hash), so two builds of
@@ -174,6 +197,7 @@ Documented in the plan; none has been needed so far.
 
 ## Delivery
 
-The user kit is kept outside this repository (`entrega/v1.1/` next to it; `entrega/v1/` is the first
-release): the firmware, this `DWIN_SET (JARVIS)`, `jarvis_theme.gcode`, the rollback files, a Spanish
-flashing README and an acceptance checklist. Nothing is flashed from here: the user flashes and reports.
+The user kit is kept outside this repository (`entrega/v1.2/` next to it; `entrega/v1/` is the first
+release, `entrega/v1.1/` the M503 fix): the firmware, this `DWIN_SET (JARVIS)`, `jarvis_theme.gcode`,
+the rollback files, a Spanish flashing README and an acceptance checklist. Nothing is flashed from
+here: the user flashes and reports.

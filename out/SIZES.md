@@ -16,3 +16,7 @@
 | 2026-10-18 18:55 | X2-JARVIS | 182272 | 30720 | JARVIS_FANBAR trial (define stays commented), +96 B vs JARVIS_DASH_FRAME |
 | 2026-10-18 19:12 | X2-JARVIS | 182176 | 30816 | v1 release build |
 | 2026-10-24 19:52 | X2-JARVIS | 182064 | 30928 | v1.1 M503 hardfault + runout pin fix |
+| 2026-10-24 21:16 | MM | 181616 | 31376 | MM at v1.1 (3b610cca0), baseline for the v1.2 guard check |
+| 2026-10-24 21:27 | X2-JARVIS | 182040 | 30952 | trial: v1.2 tree with JARVIS_TRAM_FROM_MESH off (not committed), -24 B vs v1.1: mesh_max no longer set at boot (-40 B code, +8 B data), C851 EOL +8 B |
+| 2026-10-24 21:28 | MM | 181624 | 31368 | MM at the v1.2 tree, guard check vs MM v1.1 (not a release), +8 B = the C851 EOL only |
+| 2026-10-24 21:35 | X2-JARVIS | 184488 | 28504 | v1.2 tram from mesh, clip insets, C851 EOL; JARVIS_TRAM_FROM_MESH +2448 B vs the trial, +2424 B vs v1.1 |
