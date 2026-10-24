@@ -42,6 +42,10 @@
   #endif
 #endif
 
+#if ENABLED(JARVIS_TRAM_FROM_MESH)
+  #include "tram_from_mesh.h"
+#endif
+
 #define DEBUG_OUT ENABLED(DEBUG_DWIN)
 #include "../../../core/debug_out.h"
 
@@ -247,6 +251,9 @@ void custom_gcode(const int16_t codenum) {
     #if ENABLED(PROUI_ITEM_TRAM)
       case 35: C35(); break;           // Launch bed tramming wizard
     #endif
+    #if ENABLED(JARVIS_TRAM_FROM_MESH)
+      case 36: C36(); break;           // Tram from mesh: bed screw turns from the manual mesh
+    #endif
     case 108: C108(); break;           // Cancel a Wait for User without an Emergecy Parser
     #if HAS_GCODE_PREVIEW
       case 250: C250(); break;         // Enable or disable preview screen
@@ -281,7 +288,7 @@ void custom_gcode(const int16_t codenum) {
       #if HAS_TOOLBAR
         case 810: TERN(ARDUINO_ARCH_HC32, hc32_C810, ProEx.C810)(); break; // Config toolbar
       #endif
-      case 851: ProEx.C851(); break;   // If has probe, set Z feed rate and multiple probes. If not, set manual Z-Offset
+      case 851: ProEx.C851(); TERN_(ARDUINO_ARCH_HC32, SERIAL_EOL()); break; // If has probe, set Z feed rate and multiple probes. If not, set manual Z-Offset (EOL: see custom_gcode_report)
     #endif
     default: CError(); break;
   }
@@ -309,6 +316,8 @@ void custom_gcode(const int16_t codenum) {
       TERN(ARDUINO_ARCH_HC32, hc32_C810_report, ProEx.C810_report)(forReplay);
     #endif
     ProEx.C851_report(forReplay);
+    // The library ends the C851 line with MSerial1.write('\n'): on HC32 that is the display UART (LCD_SERIAL_PORT 1)
+    TERN_(ARDUINO_ARCH_HC32, SERIAL_EOL());
   }
 #endif
 

@@ -108,6 +108,10 @@
   #include "meshviewer.h"
 #endif
 
+#if ENABLED(JARVIS_TRAM_FROM_MESH)
+  #include "tram_from_mesh.h"
+#endif
+
 #if HAS_LOCKSCREEN
   #include "lockscreen.h"
 #endif
@@ -3430,6 +3434,7 @@ void Draw_Tramming_Menu() {
         MENU_ITEM(ICON_MoveZ0, MSG_HOME_Z_AND_DISABLE, onDrawMenuItem, HomeZandDisable);
       #endif
     #endif
+    TERN_(JARVIS_TRAM_FROM_MESH, MENU_ITEM_F(ICON_Tram, "Tram from Mesh", onDrawMenuItem, TramFromMesh);)
     MENU_ITEM(ICON_AxisBL, MSG_TRAM_FL, onDrawMenuItem, []{ (void)tram(0); });
     MENU_ITEM(ICON_AxisBR, MSG_TRAM_FR, onDrawMenuItem, []{ (void)tram(1); });
     MENU_ITEM(ICON_AxisTR, MSG_TRAM_BR, onDrawMenuItem, []{ (void)tram(2); });

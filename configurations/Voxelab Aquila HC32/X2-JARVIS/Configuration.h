@@ -2372,6 +2372,13 @@
   #define GRID_MAX_POINTS_X 5    // Don't use more than 7 points per axis, implementation limited
   #define GRID_MAX_POINTS_Y GRID_MAX_POINTS_X
 
+  // X2: 12 mm margin for the glass clips (front and back edges, 7 mm into the bed). Fixed numbers, as the inset
+  // default takes the max from the closed library's PRO_data bed size (230) before the settings load: R220 B220
+  #define MESH_MIN_X  12
+  #define MESH_MAX_X 208
+  #define MESH_MIN_Y  12
+  #define MESH_MAX_Y 208
+
   //#define MESH_G28_REST_ORIGIN // After homing all axes ('G28' or 'G28 XYZ') rest Z at Z_MIN_POS
 
 #endif // BED_LEVELING
@@ -2424,7 +2431,7 @@
    */
   #define BED_TRAMMING_LEVELING_ORDER { LF, RF, RB, LB }
 #else
-  #define BED_SCREW_INSET 35 // Distance the knob screw is from corners.
+  #define BED_SCREW_INSET 29 // Distance the knob screw is from corners. X2: 29 mm from the left and front edges
 #endif
 
 // @section homing
@@ -3663,6 +3670,10 @@
   //#define JARVIS_BOOT_JPG     // Boot screen over 0_start.jpg, only if M997 showed it upright (0 bytes of flash over JARVIS_BOOT)
   //#define JARVIS_FANBAR       // Fan speed bar on the dashboard (96 bytes of flash)
   //#define JARVIS_HOT_TEMP 45  // (degC) Gauges show HOT above this with the heater off
+  #define JARVIS_TRAM_FROM_MESH // Prepare > Bed Tramming > Tram from Mesh and C36: knob turns from the manual mesh, no probe (2448 bytes of flash)
+  #define JARVIS_TRAM_SCREW_PITCH 0.7 // (mm/turn) M4 bed screws
+  #define JARVIS_TRAM_LOOSEN_CW true  // Turning a knob clockwise loosens the spring and raises the corner
+  #define JARVIS_TRAM_TOLERANCE 0.05  // (mm) Corners within this are reported as leveled
 
 #endif
 

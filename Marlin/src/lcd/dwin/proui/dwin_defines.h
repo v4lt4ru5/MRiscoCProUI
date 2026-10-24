@@ -60,6 +60,9 @@
 #if ENABLED(JARVIS_PALETTE) && ALT_COLOR_MENU != 1
   #error "JARVIS_PALETTE requires ALT_COLOR_MENU 1 (the only DWIN_SetColorDefaults() that applies every Def_*_Color)."
 #endif
+#if ENABLED(JARVIS_TRAM_FROM_MESH) && (DISABLED(MESH_BED_LEVELING) || !defined(BED_SCREW_INSET))
+  #error "JARVIS_TRAM_FROM_MESH requires MESH_BED_LEVELING and BED_SCREW_INSET (LCD_BED_TRAMMING disabled)."
+#endif
 
 // JARVIS accents (R 0-31, G 0-63, B 0-31) for any JARVIS_* switch. RGB() has no outer parentheses, so each use is wrapped.
 #define JV_CYAN   (RGB( 0, 57, 31))
