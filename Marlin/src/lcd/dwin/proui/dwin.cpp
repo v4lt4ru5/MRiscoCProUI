@@ -3422,7 +3422,7 @@ void Draw_Prepare_Menu() {
 
 void Draw_Tramming_Menu() {
   checkkey = Menu;
-  if (SET_MENU(TrammingMenu, MSG_BED_TRAMMING, 10)) {
+  if (SET_MENU(TrammingMenu, MSG_BED_TRAMMING, TERN(JARVIS_TRAM_FROM_MESH, 11, 10))) { // 10 with a probe, +1 Tram from Mesh
     BACK_ITEM(Draw_Prepare_Menu);
     MENU_ITEM(ICON_HomeZ,  MSG_AUTO_HOME_Z, onDrawMenuItem, HomeZ);
     #if ENABLED(PROUI_ITEM_TRAM)

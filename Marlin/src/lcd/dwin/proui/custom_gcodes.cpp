@@ -275,7 +275,7 @@ void custom_gcode(const int16_t codenum) {
       case 101: ProEx.C101(); break;   // Change Physical maximums
       case 102: ProEx.C102(); break;   // Change Bed size
       case 104: ProEx.C104(); break;   // Set extruder max temperature (limited by maxtemp in thermistor table)
-      case 115: ProEx.C115(); break;   // ProUI Info
+      case 115: ProEx.C115(); TERN_(ARDUINO_ARCH_HC32, SERIAL_EOL()); break; // ProUI Info (EOL: see custom_gcode_report)
       #if ENABLED(NOZZLE_PARK_FEATURE)
         case 125: ProEx.C125(); break; // Set park position
       #endif
@@ -316,7 +316,7 @@ void custom_gcode(const int16_t codenum) {
       TERN(ARDUINO_ARCH_HC32, hc32_C810_report, ProEx.C810_report)(forReplay);
     #endif
     ProEx.C851_report(forReplay);
-    // The library ends the C851 line with MSerial1.write('\n'): on HC32 that is the display UART (LCD_SERIAL_PORT 1)
+    // The library ends the C851 line (and C115's) with MSerial1.write('\n'): on HC32 that is the display UART (LCD_SERIAL_PORT 1)
     TERN_(ARDUINO_ARCH_HC32, SERIAL_EOL());
   }
 #endif

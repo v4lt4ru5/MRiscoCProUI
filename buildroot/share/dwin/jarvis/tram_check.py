@@ -4,14 +4,16 @@ Host check for Tram from Mesh (JARVIS_TRAM_FROM_MESH): the plane fit, corner dev
 Marlin/src/lcd/dwin/proui/tram_from_mesh.h, written again with the same formulas (double here, float there), and the
 C36 lines of tram_from_mesh.cpp. From the repository root:
   python3 buildroot/share/dwin/jarvis/tram_check.py
-Asserts the expected advice on synthetic meshes and, when g++ is installed, compiles tram_from_mesh.h on the host and
-checks that it prints the same numbers and texts.
+Asserts the expected advice on synthetic meshes, that opposite corners always tie (so the screen always names a front
+corner) and how many passes the knob procedure of the kit README takes on a rigid bed; when g++ is installed, compiles
+tram_from_mesh.h on the host and checks that it prints the same numbers and texts.
 """
-import math, os, shutil, subprocess, tempfile
+import math, os, random, re, shutil, subprocess, tempfile
 
 PITCH, LOOSEN_CW, TOL = 0.7, True, 0.05  # JARVIS_TRAM_SCREW_PITCH, JARVIS_TRAM_LOOSEN_CW, JARVIS_TRAM_TOLERANCE
 BED, INSET = 220, 29                     # X/Y_BED_SIZE and BED_SCREW_INSET of the X2-JARVIS config
 NAMES = ('FL', 'FR', 'BR', 'BL')
+SCREWS = [(INSET, INSET), (BED - INSET, INSET), (BED - INSET, BED - INSET), (INSET, BED - INSET)]  # tram(0..3)
 HDR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../../Marlin/src/lcd/dwin/proui')
 
 def corners(pts, w=BED, h=BED, s=INSET):
@@ -39,6 +41,13 @@ def tram_advice(d):
   if f: t += (' %u/%u' if w else '%u/%u') % (f // g, 8 // g)
   return t + ' turn ' + ('CW' if (d < 0) == LOOSEN_CW else 'CCW')
 
+def worst(d):
+  """tram_worst(): the largest |d|, the first in FL, FR, BR, BL order on a tie"""
+  w = 0
+  for i in range(1, 4):
+    if abs(d[i]) > abs(d[w]): w = i
+  return w
+
 def c36(pts):
   """The lines C36() prints after 'echo:'; pts = [(x, y, z)] of the mesh"""
   r = None if not any(p[2] for p in pts) else corners(pts)  # bedlevel.has_mesh(): any z != 0
@@ -47,9 +56,7 @@ def c36(pts):
   ok = lambda v: abs(v) < TOL
   out = ['  %s  %s mm  %s' % (NAMES[i], tram_mm(d[i]),
          'ok' if ok(d[i]) else '%s  %s' % ('RAISE' if d[i] < 0 else 'LOWER', tram_advice(d[i]))) for i in range(4)]
-  w = 0
-  for i in range(1, 4):
-    if abs(d[i]) > abs(d[w]): w = i
+  w = worst(d)
   out.append('  corners leveled (tol %.2f)' % TOL if ok(d[w]) else '  worst: ' + NAMES[w])
   return out + ['  tilt X %s mm/100mm  Y %s mm/100mm' % (tram_mm(b * 100), tram_mm(c * 100))]
 
@@ -66,6 +73,31 @@ CASES = {
   'saddle (twisted bed), 3x3':           mesh(lambda x, y: 0.0004 * (x - 110) * (y - 110) + 0.2),
   'tilt +2 mm front to back, 3x3':       mesh(lambda x, y: 2.0 * (y - 12) / 196),
   'tilts in X and Y + bumps, 5x5':       mesh(lambda x, y: 0.1 + 0.0012 * x - 0.0007 * y + 0.03 * math.sin(x * y), 5),
+}
+
+def knob(advice):
+  """'loosen 1 1/8 turn CW' -> the knob travel in mm, + when the corner rises"""
+  m = re.fullmatch(r'(loosen|tighten) (?:<1/8|(\d+)?(?: ?(\d)/(\d))?) turn CC?W', advice)
+  t = (int(m.group(2) or 0) + (int(m.group(3)) / int(m.group(4)) if m.group(3) else 0)) * PITCH
+  return t if m.group(1) == 'loosen' else -t
+
+def passes(h, knobs):
+  """A rigid bed on its screws at heights h (FL, FR, BR, BL, mm): rounds of 3x3 mesh, Tram from Mesh and knob turns
+  until 'Corners leveled'; knobs(d, w) lists the corners turned, each by its own advice"""
+  h = list(h)
+  for n in range(10):
+    _, b, c = corners([(x, y, z) for (x, y), z in zip(SCREWS, h)])  # the plate takes the plane of its four screws
+    a = sum(h) / 4 - (b + c) * BED / 2
+    d = corners(mesh(lambda x, y: a + b * x + c * y))[0]
+    w = worst(d)
+    if abs(d[w]) < TOL: return n
+    for i in knobs(d, w): h[i] += knob(tram_advice(d[i]))
+  return None
+
+PROCEDURES = {  # README step 4: the named knob and its diagonal opposite, or the four C36 lines; not the named knob alone
+  'named + opposite': lambda d, w: (w, (w + 2) % 4),
+  'all four (C36)':   lambda d, w: [i for i in range(4) if abs(d[i]) >= TOL],
+  'named knob only':  lambda d, w: (w,),
 }
 
 def check():
@@ -90,6 +122,22 @@ def check():
     assert tram_advice(-PITCH * k / 8 - 0.001) == 'loosen %s turn CW' % s, (k, tram_advice(-PITCH * k / 8 - 0.001))
   assert tram_advice(0.0437) == 'tighten <1/8 turn CCW' and tram_advice(0.0438) == 'tighten 1/8 turn CCW'
   assert tram_mm(-0.004) == '+0.00' and tram_mm(-0.18) == '-0.18' and tram_mm(1e9) == '+99.99'
+  # opposite corners tie exactly (d BR = -d FL, d BL = -d FR), so the named corner is always FL or FR
+  rnd = random.Random(1)
+  meshes = [p for p in CASES.values() if any(q[2] for q in p)]
+  meshes += [mesh(lambda x, y: rnd.gauss(0, 0.3), rnd.randint(3, 9)) for _ in range(500)]
+  for p in meshes:
+    d = corners(p)[0]
+    assert d[2] == -d[0] and d[3] == -d[1] and worst(d) in (0, 1), d
+  # passes until "Corners leveled": one knob alone moves its own corner and the opposite one half of its travel each
+  heights = {'back 0.3 mm high': [0.3 * (y - 12) / 196 for x, y in SCREWS],
+             'right 0.5 mm high': [0.5 * (x - 12) / 196 for x, y in SCREWS],
+             'FL knob 1/2 turn low': [-0.35, 0, 0, 0]}
+  want = {'back 0.3 mm high': (2, 1, 4), 'right 0.5 mm high': (2, 1, 6), 'FL knob 1/2 turn low': (1, 1, 2)}
+  for k, h in heights.items():
+    got = tuple(passes(h, f) for f in PROCEDURES.values())
+    print('rigid bed, %s: passes until "Corners leveled": %s' % (k, ', '.join('%s %s' % q for q in zip(PROCEDURES, got))))
+    assert got == want[k], (k, got)
   return t
 
 CXX = r'''
