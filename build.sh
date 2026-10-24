@@ -35,6 +35,13 @@ if grep -q '^ *#define PROUI_EX' Marlin/Configuration.h; then
     A=$("$TC/arm-none-eabi-nm" "$ELF" | awk -v s="$S" '$3 == s { print $1 }')
     [ -z "$A" ] || [[ $("$TC/arm-none-eabi-addr2line" -e "$ELF" "0x$A") == */Marlin/src/* ]] || BAD+=$'\n'"$S at 0x$A is not from Marlin/src"
   done
+  # Maple-layout literal: any &MSerialN + 22 left in the image means library code still addresses the serial object with the GD32F10 layout
+  for S in MSerial1 MSerial2; do
+    A=$("$TC/arm-none-eabi-nm" "$ELF" | awk -v s="$S" '$3 == s { print $1 }')
+    [ -z "$A" ] && continue
+    N=$(python3 -I -c 'import sys,struct; d=open(sys.argv[1],"rb").read(); print(d.count(struct.pack("<I", int(sys.argv[2],16)+22)))' "$BIN" "0x$A")
+    [ "$N" = 0 ] || BAD+=$'\n'"literal $S+22 found $N time(s) in $BIN"
+  done
   [ -z "$BAD" ] || { printf 'HC32 libproui checks: FAILED\n%s\n' "$BAD"; exit 1; }
   echo "HC32 libproui checks: OK"
 fi
