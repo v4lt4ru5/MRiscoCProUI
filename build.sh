@@ -27,6 +27,18 @@ BIN=${BINS[0]}
 SIZE=$(stat -c%s "$BIN")
 [ "$SIZE" -le "$MAX" ] || { echo "FLASH OVERFLOW $SIZE"; exit 1; }
 
+# ProUI-EX on HC32 links the GD32F10 (Maple HAL) libproui.a: fail if the Maple-layout code that custom_gcodes.cpp replaces got linked
+if grep -q '^ *#define PROUI_EX' Marlin/Configuration.h; then
+  TC="$PLATFORMIO_CORE_DIR/packages/toolchain-gccarmnoneeabi/bin"; ELF="${BIN%.bin}.elf"
+  BAD=$("$TC/arm-none-eabi-nm" -C "$ELF" | grep -E 'ProUIClass::C(29|412|562|810)(_report)?\(' || true)
+  for S in _Z17serial_echopair_PIsEvPKcT_ _Z19serial_echolnpair_PIsEvPKcT_ _ZN18FilamentSensorBase16poll_runout_pinsEv _Z11SERIAL_ECHOIfEvT_ _Z11SERIAL_ECHOIPcEvT_; do
+    A=$("$TC/arm-none-eabi-nm" "$ELF" | awk -v s="$S" '$3 == s { print $1 }')
+    [ -z "$A" ] || [[ $("$TC/arm-none-eabi-addr2line" -e "$ELF" "0x$A") == */Marlin/src/* ]] || BAD+=$'\n'"$S at 0x$A is not from Marlin/src"
+  done
+  [ -z "$BAD" ] || { printf 'HC32 libproui checks: FAILED\n%s\n' "$BAD"; exit 1; }
+  echo "HC32 libproui checks: OK"
+fi
+
 "$PLATFORMIO_CORE_DIR/packages/toolchain-gccarmnoneeabi/bin/arm-none-eabi-size" "${BIN%.bin}.elf"
 OUT="out/HC32_${CFG}${SUFIJO}-$(date +%Y%m%d).bin"
 cp "$BIN" "$OUT"
