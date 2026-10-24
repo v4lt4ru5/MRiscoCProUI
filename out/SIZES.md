@@ -15,3 +15,4 @@
 | 2026-10-18 18:48 | X2-JARVIS | 182396 | 30596 | TITLE/CURSOR/GAUGES/DASH_FRAME off check (trial), same bytes as JARVIS_BOOT but the build time |
 | 2026-10-18 18:55 | X2-JARVIS | 182272 | 30720 | JARVIS_FANBAR trial (define stays commented), +96 B vs JARVIS_DASH_FRAME |
 | 2026-10-18 19:12 | X2-JARVIS | 182176 | 30816 | v1 release build |
+| 2026-10-24 19:52 | X2-JARVIS | 182064 | 30928 | v1.1 M503 hardfault + runout pin fix |

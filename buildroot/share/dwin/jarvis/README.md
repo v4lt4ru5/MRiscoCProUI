@@ -116,7 +116,8 @@ In `configurations/Voxelab Aquila HC32/X2-JARVIS/Configuration.h`. Each delta wa
 | `JARVIS_HOT_TEMP` | 45 | (degC) a gauge shows HOT when the heater is off and the temperature is above this (`jarvis.h` default) | - |
 
 - Any `JARVIS_*` switch with `TJC_DISPLAY` or `DACAI_DISPLAY` is an `#error`.
-- Release build: 182,176 B, 30,816 B free of the 212,992 B gate (target <= 207,000 B). The six
+- Release build: v1.1, 182,064 B, 30,928 B free of the 212,992 B gate (target <= 207,000 B); v1 was
+  182,176 B, and v1.1 replaces four closed-library C-codes with open code (-112 B, see below). The six
   default switches together save 80 B: 182,256 B (X2-JARVIS config before any skin code) ->
   182,176 B, per the rows of `out/SIZES.md`.
 
@@ -126,14 +127,22 @@ In `configurations/Voxelab Aquila HC32/X2-JARVIS/Configuration.h`. Each delta wa
 
 `build.sh` activates `.venv`, sets `PLATFORMIO_CORE_DIR`, copies the three headers of
 `configurations/Voxelab Aquila HC32/X2-JARVIS/` into `Marlin/`, deletes
-`.pio/build/HC32F460C_aquila_101`, builds that env, fails if the `.bin` is over 212,992 B, prints
-`arm-none-eabi-size` and `libres=N`, copies the result to `out/HC32_X2-JARVIS-<YYYYMMDD>.bin` and adds
-a row to `out/SIZES.md` (keep `|` out of the note: it breaks the table). On exit, success or failure,
-it restores `Marlin/Configuration.h`, `Configuration_adv.h` and `Version.h` with `git checkout`.
+`.pio/build/HC32F460C_aquila_101`, builds that env, fails if the `.bin` is over 212,992 B or if a
+ProUI-EX build fails the libproui checks below, prints `arm-none-eabi-size` and `libres=N`, copies the
+result to `out/HC32_X2-JARVIS-<YYYYMMDD>.bin` and adds a row to `out/SIZES.md` (keep `|` out of the
+note: it breaks the table). On exit, success or failure, it restores `Marlin/Configuration.h`,
+`Configuration_adv.h` and `Version.h` with `git checkout`.
 
 - Edit `configurations/Voxelab Aquila HC32/X2-JARVIS/`, never `Marlin/Configuration*.h`: `build.sh`
   overwrites those before the build and restores them after it, so a local edit there is lost.
 - Run one build per working tree at a time: builds share the `Marlin/` headers and `.pio/build`.
+- `HC32 libproui checks: OK`. On HC32, `proui.py` links the GD32F10 `libproui.a`, which is built for
+  the Maple HAL: its serial and pin code does not match the HC32 core (`M503` hard-faulted, the
+  runout monitor read the wrong pin). `custom_gcodes.cpp` replaces that code, and `build.sh` fails if
+  the library's `C29`/`C412`/`C562`/`C810` handlers or reports are linked, or if
+  `serial_echopair_P<short>`, `serial_echolnpair_P<short>`, `FilamentSensorBase::poll_runout_pins()`,
+  `SERIAL_ECHO<float>` or `SERIAL_ECHO<char*>` are linked from anywhere but `Marlin/src`
+  (`nm`, `addr2line`).
 - To measure a switch, toggle it in the X2-JARVIS `Configuration.h`, build with a note, and put the
   delta in the define's comment and in `out/SIZES.md`.
 - The `.bin` embeds the build date and time (`M115`, and the EEPROM build hash), so two builds of
@@ -165,6 +174,6 @@ Documented in the plan; none has been needed so far.
 
 ## Delivery
 
-The user kit is kept outside this repository (`entrega/v1/` next to it): the firmware, this
-`DWIN_SET (JARVIS)`, `jarvis_theme.gcode`, the rollback files, a Spanish flashing README and an
-acceptance checklist. Nothing is flashed from here: the user flashes and reports.
+The user kit is kept outside this repository (`entrega/v1.1/` next to it; `entrega/v1/` is the first
+release): the firmware, this `DWIN_SET (JARVIS)`, `jarvis_theme.gcode`, the rollback files, a Spanish
+flashing README and an acceptance checklist. Nothing is flashed from here: the user flashes and reports.
