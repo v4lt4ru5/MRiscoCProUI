@@ -1326,6 +1326,7 @@ void setup() {
 
   #if ALL(PROUI_EX, HAS_CGCODE)
     ProEx.C115();
+    TERN_(ARDUINO_ARCH_HC32, SERIAL_EOL()); // the library ends C115 with MSerial1.write('\n'): the display UART on HC32
   #else
     // Identify myself as Marlin x.x.x
     SERIAL_ECHOLNPGM("Marlin " SHORT_BUILD_VERSION);
