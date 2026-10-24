@@ -140,11 +140,11 @@ In `configurations/Voxelab Aquila HC32/X2-JARVIS/Configuration.h`. Each delta wa
   while it still holds the closed library's own default 230, hence the old `C29 ... R220 B220`.
 - Release build: v1.2, 184,488 B, 28,504 B free of the 212,992 B gate (target <= 207,000 B): v1.1
   (182,064 B) + `JARVIS_TRAM_FROM_MESH` (+2,448 B) - 24 B (`mesh_max` is now constant data: -40 B of
-  boot code, +8 B of data; the `C851` newline +8 B; the `C115` newline shares the `C851` tail in
-  `custom_gcode()`, -4 B there and 0 B in the image). v1 was 182,176 B, and v1.1 replaces four
-  closed-library C-codes with open code (-112 B, see below). The six default skin switches together
-  save 80 B: 182,256 B (X2-JARVIS config before any skin code) -> 182,176 B, per the rows of
-  `out/SIZES.md`.
+  boot code, +8 B of data; the `C851` newline +8 B; the two `C115` newlines -4 B in
+  `custom_gcode()`, whose tail they share with `C851`, and +4 B in `setup()`). v1 was 182,176 B, and
+  v1.1 replaces four closed-library C-codes with open code (-112 B, see below). The six default skin
+  switches together save 80 B: 182,256 B (X2-JARVIS config before any skin code) -> 182,176 B, per
+  the rows of `out/SIZES.md`.
 
 ## Rebuild the firmware
 
@@ -171,8 +171,9 @@ note: it breaks the table). On exit, success or failure, it restores `Marlin/Con
   functions stay that write their final newline with `MSerial1.write('\n')`, which on HC32 is the
   display UART (`LCD_SERIAL_PORT 1`): `ProUIClass::C851_report()` (also behind `C851`) and
   `ProUIClass::C115()`, the only library callers of that write. `custom_gcodes.cpp` adds
-  `SERIAL_EOL()` after `C851_report()`, `C851` and `C115` (since v1.2; before, `M503` ended in
-  `C851 Z0.00ok` and `C115` in `(MRiscoC)ok`).
+  `SERIAL_EOL()` after `C851_report()`, `C851` and `C115`, and `MarlinCore.cpp` after the boot
+  banner, which `setup()` prints with `C115()` (since v1.2; before, `M503` ended in `C851 Z0.00ok`,
+  `C115` in `(MRiscoC)ok` and the banner ran into `echo:  Free Memory: ...`).
 - To measure a switch, toggle it in the X2-JARVIS `Configuration.h`, build with a note, and put the
   delta in the define's comment and in `out/SIZES.md`.
 - The `.bin` embeds the build date and time (`M115`, and the EEPROM build hash), so two builds of

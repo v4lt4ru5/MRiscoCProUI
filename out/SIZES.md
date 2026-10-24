@@ -20,5 +20,7 @@
 | 2026-10-24 21:27 | X2-JARVIS | 182040 | 30952 | trial: v1.2 tree with JARVIS_TRAM_FROM_MESH off (not committed), -24 B vs v1.1: mesh_max no longer set at boot (-40 B code, +8 B data), C851 EOL +8 B |
 | 2026-10-24 21:28 | MM | 181624 | 31368 | MM at the v1.2 tree, guard check vs MM v1.1 (not a release), +8 B = the C851 EOL only |
 | 2026-10-24 21:35 | X2-JARVIS | 184488 | 28504 | v1.2 tram from mesh, clip insets, C851 EOL; JARVIS_TRAM_FROM_MESH +2448 B vs the trial, +2424 B vs v1.1 |
-| 2026-10-24 22:38 | X2-JARVIS | 184488 | 28504 | v1.2 fix round 1 (kit build): C115 EOL + Tramming menu size 11, same image size as the 21:35 build (custom_gcode -4 B, absorbed by alignment) |
-| 2026-10-24 22:40 | MM | 181616 | 31376 | MM at v1.2 fix round 1 (not a release), guard check vs MM v1.1: same size, only the C851/C115 EOL code differs |
+| 2026-10-24 22:38 | X2-JARVIS | 184488 | 28504 | v1.2 fix round 1 at cf8dca407 (superseded by the 22:50 build): C115 EOL in the dispatcher + Tramming menu size 11, custom_gcode -4 B, same image size |
+| 2026-10-24 22:40 | MM | 181616 | 31376 | MM at cf8dca407 (not a release, superseded by the 22:51 build) |
+| 2026-10-24 22:50 | X2-JARVIS | 184488 | 28504 | v1.2 fix round 1 (kit build, 58594600f): C115 EOL in the dispatcher and at boot + Tramming menu size 11; custom_gcode -4 B, setup +4 B, same image size as the 21:35 build |
+| 2026-10-24 22:51 | MM | 181616 | 31376 | MM at v1.2 fix round 1 (58594600f, not a release), guard check vs MM v1.1: same size; only the C851/C115 EOL code differs (+8 B of code in padding) |
